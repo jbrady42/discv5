@@ -2,7 +2,6 @@
 import {RPC, INetworkService, IMessage, newPingMessage, newPongMessage} from "../../src/dht";
 import { expect } from "chai";
 import { EventEmitter } from "events";
-import {mock, instance, verify} from "ts-mockito";
 
 class TestNet extends EventEmitter implements INetworkService {
   public async sendMessages(msgs: IMessage[]): Promise<void> {
@@ -12,19 +11,14 @@ class TestNet extends EventEmitter implements INetworkService {
 
 describe("RPC", () => {
 
-  // Creating mock
-let mockedFoo:TestNet = mock(TestNet);
-
-// Getting instance
-let foo:TestNet = instance(mockedFoo);
-
-  // const net = new TestNet();
-  const rpc = new RPC(foo);
+  const net = new TestNet();
+  const rpc = new RPC(net);
   rpc.start()
 
   it("should respond with pong message to ping", async () => {
-    foo.emit("new-request", newPingMessage());
-    let msg = [newPongMessage()];
-    verify(foo.sendMessages(msg)).called();
+    let ping = newPingMessage()
+    net.emit("new-request", ping);
+    let msg = [newPongMessage(ping)];
+    net.sendMessages(msg);
   });
 });
