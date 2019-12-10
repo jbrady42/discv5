@@ -1,4 +1,5 @@
-import { SequenceNumber, ENR } from "../enr";
+import { SequenceNumber, ENR, NodeId } from "../enr";
+import {ISocketAddr} from "../transport";
 
 export type RequestId = bigint;
 
@@ -11,6 +12,13 @@ export enum MessageType {
   TICKET = 6,
   REGCONFIRMATION = 7,
   TOPICQUERY = 8,
+}
+
+export interface MessageBox {
+  msg: Message,
+  msgType: MessageType,
+  cxInfo: ISocketAddr,
+  nodeId: NodeId,
 }
 
 export type Message = RequestMessage | ResponseMessage;
