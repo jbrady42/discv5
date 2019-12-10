@@ -1,10 +1,14 @@
 /* eslint-env mocha */
-import {RPC, INetworkService, IMessage, newPingMessage, newPongMessage} from "../../src/dht";
+import {RPC, INetworkService, newPingMessage, newPongMessage} from "../../src/dht";
 import { expect } from "chai";
 import { EventEmitter } from "events";
+import {MessageBox, MessageType} from "../../src/message";
 
 class TestNet extends EventEmitter implements INetworkService {
-  public async sendMessages(msgs: IMessage[]): Promise<void> {
+  public async sendMessages(msgs: MessageBox[]): Promise<void> {
+    let msg = msgs[0];
+    let remote = this.sessions[msg.nodeId]
+    this.sendLower(msg, remote);
     console.log(msgs);
   }
 }
@@ -18,7 +22,5 @@ describe("RPC", () => {
   it("should respond with pong message to ping", async () => {
     let ping = newPingMessage()
     net.emit("new-request", ping);
-    let msg = [newPongMessage(ping)];
-    net.sendMessages(msg);
   });
 });
