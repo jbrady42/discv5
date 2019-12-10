@@ -19,8 +19,6 @@ export class RPC {
     // session = setupSession(udpLayer);
 
     this.network.on("new-request", (e) => this.rpcRequest(e));
-
-    return new Promise<void>(res => {});
   }
 
   async rpcRequest(msg: IMessage): Promise<void> {
@@ -32,8 +30,6 @@ export class RPC {
     }
     // Send response
     await this.network.sendMessages(response)
-
-    return new Promise<void>(res => {});
   }
 
   async handleMessage(msg: IMessage): Promise<IMessage[]> {
@@ -56,39 +52,27 @@ export class RPC {
   }
 
   async handlePing(msg: IMessage): Promise<IMessage[]> {
-    return new Promise<IMessage[]>((res) => {
-      // Make pong message
-        res([newPongMessage()]);
-    })
+    return [newPongMessage(msg)];
   }
 
   async handleFindNode(msg: IMessage): Promise<IMessage[]> {
-    return new Promise<IMessage[]>(res => {
-      // Make pong message
-        res([newPongMessage()])
-    })
+    return [newPongMessage(msg)];
   }
 
   async handleRegTopic(msg: IMessage): Promise<IMessage[]> {
-    return new Promise<IMessage[]>(res => {
-      // Make pong message
-        res([newPongMessage()])
-    })
+    return [newPongMessage(msg)];
   }
 
   async handleTopicQuery(msg: IMessage): Promise<IMessage[]> {
-    return new Promise<IMessage[]>(res => {
-      // Make pong message
-        res([newPongMessage()])
-    })
+    return [newPongMessage(msg)];
   }
 
 }
 
-export function newPongMessage(): IMessage {
+export function newPongMessage(ping: IMessage): IMessage {
   return {
     type: MessageType.PONG,
-    requestId: 0,
+    requestId: ping.requestId,
     data: Buffer.alloc(0)
   };
 }
@@ -96,7 +80,11 @@ export function newPongMessage(): IMessage {
 export function newPingMessage(): IMessage {
   return {
     type: MessageType.PING,
-    requestId: 0,
+    requestId: requestId(),
     data: Buffer.alloc(0)
   };
+}
+
+export function requestId(): number {
+  return 42;
 }
