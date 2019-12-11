@@ -4,20 +4,19 @@ import { expect } from "chai";
 import { EventEmitter } from "events";
 import {MessageBox, MessageType} from "../../src/message";
 import {ISessionService} from "../../src/session";
+import { ISocketAddr } from "../../src/transport";
+
 
 class TestNet extends EventEmitter implements ISessionService {
   public async sendResponse(msgs: MessageBox): Promise<void> {
-    // let msg = msgs[0];
-    // let remote = this.sessions[msg.nodeId]
-    // this.sendLower(msg, remote);
     console.log(msgs);
   }
-  public async sendMessageSock(msgs: MessageBox): Promise<void> {
-    // let msg = msgs[0];
-    // let remote = this.sessions[msg.nodeId]
-    // this.sendLower(msg, remote);
+  public async sendMessageSock(addr: ISocketAddr, msgs: MessageBox): Promise<void> {
     console.log(msgs);
   }
+
+  public async start(){}
+  public async close(){}
 }
 
 describe("RPC", () => {

@@ -57,7 +57,5 @@ describe("E2E", () => {
 
   it("should respond to real packets pong message to ping", async () => {
     rpcA.sendPingSock({address, port: portB});
-    // let ping = newPingMessage()
-    // net.emit("new-request", ping);
   });
 });
