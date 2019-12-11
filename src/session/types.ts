@@ -1,5 +1,6 @@
 import {MessageBox} from "../message"
 import { EventEmitter } from "events";
+import {ISocketAddr} from "../transport";
 
 
 export enum SessionState {
@@ -40,7 +41,10 @@ export interface ISessionService extends EventEmitter {
   // Send message using the established session
   sendResponse(msg: MessageBox): Promise<void>;
   // Send message directly to socket, kicks off new session establishment
-  sendMessageSock(msg: MessageBox): Promise<void>;
+  sendMessageSock(addr: ISocketAddr, msg: MessageBox): Promise<void>;
+
+  start(): Promise<void>
+  close(): Promise<void>
 }
 
 export interface IKeys {

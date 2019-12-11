@@ -14,6 +14,15 @@ export enum MessageType {
   TOPICQUERY = 8,
 }
 
+export function isRequest(ty: MessageType): boolean {
+  return [MessageType.PING, MessageType.FINDNODE, MessageType.TOPICQUERY, MessageType.REGTOPIC].includes(ty);
+}
+export function isResponse(ty: MessageType): boolean {
+  return [MessageType.PONG, MessageType.NODES, MessageType.TICKET, MessageType.REGCONFIRMATION].includes(ty);
+}
+
+
+
 export interface MessageBox {
   msg: Message,
   msgType: MessageType,

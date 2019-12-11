@@ -1,11 +1,5 @@
 import {
-  IDiscv5,
-} from "./types";
-import {
-  Message,
   MessageType,
-  IPingMessage,
-  IPongMessage,
   MessageBox
 } from "../message";
 import {ISessionService} from "../session";
@@ -20,20 +14,28 @@ export class RPC {
     this.network = trans;
   }
   public async start(): Promise<void> {
-    // Set up udp read loop
-
-    // Set up session/ enc layer
-    // session = setupSession(udpLayer);
-
-    this.network.on("new-request", (msg) => this.rpcRequest(msg));
+    await this.network.start();
+    this.network.on("on-request", this.rpcRequest);
+    this.network.on("on-response", this.rpcResponse);
   }
 
-  async rpcRequest(msg: MessageBox): Promise<void> {
+  public async close(): Promise<void> {
+    this.network.removeListener("on-request", this.rpcRequest);
+    this.network.removeListener("on-response", this.rpcResponse);
+    await this.network.close();
+  }
+
+  public rpcResponse = async (msg: MessageBox): Promise<void> => {
+    console.log("Got response", msg)
+  }
+
+  public rpcRequest = async (msg: MessageBox): Promise<void> => {
     let response = await this.handleMessage(msg);
     this.network.sendResponse(response);
   }
 
   async handleMessage(msg: MessageBox): Promise<MessageBox> {
+    console.log("Handle message ", msg);
     switch(msg.msgType) {
       case MessageType.PING: {
         return this.handlePing(msg);
@@ -69,10 +71,9 @@ export class RPC {
   //   return [newPongMessage(msg)];
   // }
 
-  async sendPing(addr: ISocketAddr) {
+  async sendPingSock(addr: ISocketAddr) {
     let msg = newPingMessage();
-    msg.cxInfo = addr;
-    this.network.sendMessageSock(msg);
+    this.network.sendMessageSock(addr, msg);
   }
 
 }

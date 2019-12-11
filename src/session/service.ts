@@ -4,8 +4,9 @@ import { PacketType, Packet, IWhoAreYouPacket, IAuthMessagePacket, IMessagePacke
 import { NodeId, ENR } from "../enr";
 import { Session } from "./session";
 import { IKeypair } from "../keypair";
-import {MessageBox, MessageType, encode, decode} from "../message"
+import {MessageBox, MessageType, encode, decode, isRequest, isResponse} from "../message"
 import {ISessionService} from "./types";
+import {Tag} from "../packet";
 
 
 /**
@@ -51,18 +52,45 @@ export class SessionService extends EventEmitter implements ISessionService {
   }
   public onAuthMessage(from: ISocketAddr, packet: IAuthMessagePacket): void {
   }
-  public onMessage(from: ISocketAddr, packet: IMessagePacket): void {
+  public onMessage(fromId: NodeId, from: ISocketAddr, packet: IMessagePacket): void {
     console.log("On message", packet)
+    // Is this a new session?
+    if (!this.sessions.has(fromId)) {
+      // Trigger WHOAREYOU
+    }
+    //Find session
+    let sess = this.sessions.get(fromId);
+
+    // Handle sess establishment
+
+    // Process packet
+    let [msgType, msg] = decode(packet.message);
+    let nodeId = Buffer.alloc(32);
+    let msgBox = {
+      nodeId,
+      msgType,
+      msg,
+      cxInfo: from,
+    }
+
+    // New request
+    if(isRequest(msgType)) {
+      this.emit("on-request", msgBox)
+    } else if(isResponse(msgType)) {
+      //Response
+      this.emit("on-response", msgBox)
+    }
   }
   public onPacket = (from: ISocketAddr, type: PacketType, packet: Packet): void => {
-    console.log("On message", packet)
+    // console.log("On message", packet)
     switch (type) {
       case PacketType.WhoAreYou:
         return this.onWhoAreYou(from, packet as IWhoAreYouPacket);
       case PacketType.AuthMessage:
         return this.onAuthMessage(from, packet as IAuthMessagePacket);
       case PacketType.Message:
-        return this.onMessage(from, packet as IMessagePacket);
+        let src = this.srcId((packet as IMessagePacket).tag);
+        return this.onMessage(src, from, packet as IMessagePacket);
     }
   };
 
@@ -70,14 +98,20 @@ export class SessionService extends EventEmitter implements ISessionService {
     // Find session
     // Encrypt data
     // Send
-    console.log("Send response");
+    let data = encode(msg.msgType, msg.msg);
+    this.transport.send(msg.cxInfo, PacketType.Message, createMessagePacket(data));
+    console.log("Send response", msg);
   }
-  public async sendMessageSock(msg: MessageBox): Promise<void> {
+  public async sendMessageSock(addr: ISocketAddr, msg: MessageBox): Promise<void> {
     // Find session
     // Encrypt data
     // Send
     let data = encode(msg.msgType, msg.msg);
-    this.transport.send(msg.cxInfo, PacketType.Message, createMessagePacket(data));
+    this.transport.send(addr, PacketType.Message, createMessagePacket(data));
     console.log("Send message to sock");
+  }
+
+  srcId(tag: Tag): NodeId {
+    return Buffer.alloc(32);
   }
 }

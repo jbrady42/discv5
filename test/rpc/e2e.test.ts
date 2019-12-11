@@ -26,16 +26,6 @@ describe("E2E", () => {
   const portB = portA + 1;
   const b = new UDPTransportService({port: portB, address}, magicB);
 
-  before(async () => {
-    await a.start();
-    await b.start();
-  });
-
-  after(async () => {
-    await a.close();
-    await b.close();
-  });
-
 
   // Setup ENR
 
@@ -47,19 +37,26 @@ describe("E2E", () => {
   record.seq = seq;
 
 
-
-
-
   const netA = new SessionService(record, newKeypair(), a);
   const rpcA = new RPC(netA);
-  rpcA.start()
 
   const netB = new SessionService(record, newKeypair(), b);
   const rpcB = new RPC(netB);
-  rpcB.start()
+
+
+  before(async () => {
+    await rpcA.start()
+    await rpcB.start()
+  });
+
+  after(async () => {
+    await rpcA.close()
+    await rpcB.close()
+  });
+
 
   it("should respond to real packets pong message to ping", async () => {
-    rpcA.sendPing({address, port: portB});
+    rpcA.sendPingSock({address, port: portB});
     // let ping = newPingMessage()
     // net.emit("new-request", ping);
   });
