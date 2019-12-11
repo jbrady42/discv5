@@ -1,6 +1,5 @@
 import {
   IDiscv5,
-  INetworkService
 } from "./types";
 import {
   Message,
@@ -9,13 +8,15 @@ import {
   IPongMessage,
   MessageBox
 } from "../message";
+import {ISessionService} from "../session";
+import {ISocketAddr} from "../transport";
 
 
 export class RPC {
 
-  private network: INetworkService;
+  private network: ISessionService;
 
-  public constructor(trans: INetworkService) {
+  public constructor(trans: ISessionService) {
     this.network = trans;
   }
   public async start(): Promise<void> {
@@ -29,10 +30,10 @@ export class RPC {
 
   async rpcRequest(msg: MessageBox): Promise<void> {
     let response = await this.handleMessage(msg);
-    this.network.sendMessages(response)
+    this.network.sendResponse(response);
   }
 
-  async handleMessage(msg: MessageBox): Promise<MessageBox[]> {
+  async handleMessage(msg: MessageBox): Promise<MessageBox> {
     switch(msg.msgType) {
       case MessageType.PING: {
         return this.handlePing(msg);
@@ -51,8 +52,9 @@ export class RPC {
     }
   }
 
-  async handlePing(msg: MessageBox): Promise<MessageBox[]> {
-    return [newPongMessage(msg)] as MessageBox[];
+  async handlePing(msg: MessageBox): Promise<MessageBox> {
+    console.log("Handling ping");
+    return newPongMessage(msg);
   }
 
   // async handleFindNode(msg: Message): Promise<Message[]> {
@@ -67,12 +69,19 @@ export class RPC {
   //   return [newPongMessage(msg)];
   // }
 
+  async sendPing(addr: ISocketAddr) {
+    let msg = newPingMessage();
+    msg.cxInfo = addr;
+    this.network.sendMessageSock(msg);
+  }
+
 }
 
 export function newPongMessage(ping: MessageBox): MessageBox {
   let msg = ping.msg;
-  let remoteInfo = ping.cxInfo
+  let remoteInfo = ping.cxInfo;
   return {
+      nodeId: ping.nodeId,
       msgType: MessageType.PONG,
       msg: {
         id: msg.id,
@@ -80,12 +89,13 @@ export function newPongMessage(ping: MessageBox): MessageBox {
         recipientIp: remoteInfo.address,
         recipientPort: remoteInfo.port,
       },
-      cxInfo: remoteInfo
+      cxInfo: remoteInfo,
   };
 }
 
 export function newPingMessage(): MessageBox {
   return {
+    nodeId: nodeId(),
     msgType: MessageType.PING,
     msg: {
       id: requestId(),
@@ -93,6 +103,10 @@ export function newPingMessage(): MessageBox {
     },
     cxInfo: {port: 0, address: ""},
   };
+}
+
+export function nodeId(): Buffer {
+  return Buffer.alloc(32);
 }
 
 export function requestId(): bigint {

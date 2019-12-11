@@ -1,7 +1,7 @@
 import { randomBytes } from "bcrypto/lib/random";
 import sha256 = require("bcrypto/lib/sha256");
 
-import { AUTH_TAG_LENGTH, ID_NONCE_LENGTH, RANDOM_DATA_LENGTH, WHOAREYOU_STRING } from "./constants";
+import { AUTH_TAG_LENGTH, TAG_LENGTH, ID_NONCE_LENGTH, RANDOM_DATA_LENGTH, WHOAREYOU_STRING } from "./constants";
 import { IMessagePacket, Tag, AuthTag, IWhoAreYouPacket, IAuthResponse, Nonce, IAuthHeader } from "./types";
 import { NodeId, SequenceNumber, ENR } from "../enr";
 
@@ -15,6 +15,14 @@ export function createRandomPacket(tag: Tag): IMessagePacket {
 
 export function createMagic(nodeId: NodeId): Buffer {
   return sha256.digest(Buffer.concat([nodeId, Buffer.from(WHOAREYOU_STRING)]));
+}
+
+export function createMessagePacket(data: Buffer): IMessagePacket {
+  return {
+    tag: Buffer.alloc(TAG_LENGTH),
+    authTag: Buffer.alloc(AUTH_TAG_LENGTH),
+    message: data,
+  }
 }
 
 export function createWhoAreYouPacket(

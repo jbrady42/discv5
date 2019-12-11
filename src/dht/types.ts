@@ -21,9 +21,6 @@ export interface IDiscv5 {
   updateLocalState(node: INode): Promise<null>;
 }
 
-export interface INetworkService extends EventEmitter {
-  sendMessages(msgs: MessageBox[]): Promise<void>;
-}
 
 export interface IKadTable {
   readRandomNodes(): Promise<INode[]>;

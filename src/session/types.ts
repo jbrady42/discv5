@@ -1,3 +1,7 @@
+import {MessageBox} from "../message"
+import { EventEmitter } from "events";
+
+
 export enum SessionState {
   /**
    * A WHOAREYOU packet has been sent, and the Session is awaiting an Authentication response.
@@ -29,6 +33,14 @@ export enum SessionState {
    * Processing has failed. Fatal error.
    */
   Poisoned,
+}
+
+
+export interface ISessionService extends EventEmitter {
+  // Send message using the established session
+  sendResponse(msg: MessageBox): Promise<void>;
+  // Send message directly to socket, kicks off new session establishment
+  sendMessageSock(msg: MessageBox): Promise<void>;
 }
 
 export interface IKeys {

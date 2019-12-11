@@ -1,9 +1,11 @@
 import { EventEmitter } from "events";
 import { ITransportService, ISocketAddr } from "../transport";
-import { PacketType, Packet, IWhoAreYouPacket, IAuthMessagePacket, IMessagePacket } from "../packet";
+import { PacketType, Packet, IWhoAreYouPacket, IAuthMessagePacket, IMessagePacket, createMessagePacket } from "../packet";
 import { NodeId, ENR } from "../enr";
 import { Session } from "./session";
 import { IKeypair } from "../keypair";
+import {MessageBox, MessageType, encode, decode} from "../message"
+import {ISessionService} from "./types";
 
 
 /**
@@ -23,7 +25,7 @@ import { IKeypair } from "../keypair";
  * to match the source, the `Session` is promoted to an established state. RPC requests are not sent
  * to untrusted Sessions, only responses.
  */
-export class SessionService extends EventEmitter {
+export class SessionService extends EventEmitter implements ISessionService {
   private enr: ENR;
   private keypair: IKeypair;
   private transport: ITransportService;
@@ -50,8 +52,10 @@ export class SessionService extends EventEmitter {
   public onAuthMessage(from: ISocketAddr, packet: IAuthMessagePacket): void {
   }
   public onMessage(from: ISocketAddr, packet: IMessagePacket): void {
+    console.log("On message", packet)
   }
   public onPacket = (from: ISocketAddr, type: PacketType, packet: Packet): void => {
+    console.log("On message", packet)
     switch (type) {
       case PacketType.WhoAreYou:
         return this.onWhoAreYou(from, packet as IWhoAreYouPacket);
@@ -61,4 +65,19 @@ export class SessionService extends EventEmitter {
         return this.onMessage(from, packet as IMessagePacket);
     }
   };
+
+  public async sendResponse(msg: MessageBox): Promise<void> {
+    // Find session
+    // Encrypt data
+    // Send
+    console.log("Send response");
+  }
+  public async sendMessageSock(msg: MessageBox): Promise<void> {
+    // Find session
+    // Encrypt data
+    // Send
+    let data = encode(msg.msgType, msg.msg);
+    this.transport.send(msg.cxInfo, PacketType.Message, createMessagePacket(data));
+    console.log("Send message to sock");
+  }
 }

@@ -16,8 +16,7 @@ export const MAX_PACKET_SIZE = 1280;
 
 export const WHOAREYOU_STRING = "WHOAREYOU";
 
-export const ERR_TOO_SMALL = "packet too small";
-export const ERR_TOO_LARGE = "packet too large";
-export const ERR_UNKNOWN_FORMAT = "unknown format";
+export const ERR_TOO_SMALL = "Format invalid: packet too small";
+export const ERR_TOO_LARGE = "Format invalid: packet too large";
+export const ERR_UNKNOWN_FORMAT = "invalid format";
 export const ERR_INVALID_BYTE_SIZE = "invalid byte size";
-
