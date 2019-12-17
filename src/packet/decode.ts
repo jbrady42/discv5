@@ -43,6 +43,11 @@ export function decode(data: Buffer, magic: Magic): [PacketType, Packet] {
   //   magic ++ rlp_list(...)
   //   tag   ++ rlp_bytes(...) ++ message
   //   tag   ++ rlp_list(...)  ++ message
+
+  console.log(data);
+  console.log("Magic ", magic);
+  console.log("Packet magic ", tag);
+
   if (tag.equals(magic)) {
     return [
       PacketType.WhoAreYou,

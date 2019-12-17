@@ -5,8 +5,10 @@ import { NodeId, ENR } from "../enr";
 import { Session } from "./session";
 import { IKeypair } from "../keypair";
 import {MessageBox, MessageType, encode, decode, isRequest, isResponse} from "../message"
-import {ISessionService} from "./types";
 import {Tag} from "../packet";
+import xor = require("buffer-xor");
+import sha256 = require("bcrypto/lib/sha256");
+import { ISessionService } from "./types";
 
 
 /**
@@ -98,7 +100,7 @@ export class SessionService extends EventEmitter implements ISessionService {
     }
   }
   public onPacket = (from: ISocketAddr, type: PacketType, packet: Packet): void => {
-    console.log("On message", packet)
+    // console.log("On message", packet)
     switch (type) {
       case PacketType.WhoAreYou:
         return this.onWhoAreYou(from, packet as IWhoAreYouPacket);
@@ -119,7 +121,7 @@ export class SessionService extends EventEmitter implements ISessionService {
     // Encrypt data
     // Send
     let data = encode(msg.msgType, msg.msg);
-    this.transport.send(msg.cxInfo, PacketType.Message, createMessagePacket(data));
+    this.transport.send(msg.cxInfo, PacketType.Message, createMessagePacket(this.enr.nodeId, msg.nodeId, data));
     console.log("Send response", msg);
   }
   public async sendMessageSock(addr: ISocketAddr, msg: MessageBox): Promise<void> {
@@ -127,12 +129,12 @@ export class SessionService extends EventEmitter implements ISessionService {
     // Encrypt data
     // Send
     let data = encode(msg.msgType, msg.msg);
-    this.transport.send(addr, PacketType.Message, createMessagePacket(data));
+    this.transport.send(addr, PacketType.Message, createMessagePacket(this.enr.nodeId, msg.nodeId, data));
     console.log("Send message to sock");
   }
 
   srcId(tag: Tag): NodeId {
-    return Buffer.alloc(32);
+    return xor(sha256.digest(this.enr.nodeId), tag);
   }
 
    async sendWhoAreYou(src: ISocketAddr, srcId: NodeId, tag: Buffer): Promise<void> {
@@ -141,7 +143,7 @@ export class SessionService extends EventEmitter implements ISessionService {
      // No need to send another packet
 
 
-     let [session, packet] = Session.createWithWhoAreYou(srcId, this.enr.seq, null, tag);
+     let [session, packet] = Session.createWithWhoAreYou(srcId, 0n, null, tag);
 
      this.sessions.set(srcId, session);
 
